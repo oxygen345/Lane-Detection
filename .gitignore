@@ -1,0 +1,64 @@
+# Python
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pip_cache/
+
+# PyTorch / 模型权重
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.onnx
+
+# 数据集
+CULane/
+tuSimple/
+test_imgs/
+data/*.jpg
+data/*.png
+
+# 数据库
+*.db
+*.db-journal
+
+# 视频
+*.avi
+*.mp4
+*.mov
+
+# 导出文件
+export_*.csv
+export_*.json
+
+# 临时目录
+evaluate/
+eval/
+tmp/
+temp/
+build/
+
+# IDE
+.idea/
+.vscode/
+.trae/
+*.swp
+*.swo
+
+# 用户上传/结果（保留 .gitkeep）
+static/uploads/*
+!static/uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+
+# 日志
+*.log
+logs/
+log/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store

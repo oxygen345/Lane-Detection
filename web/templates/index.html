@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>车道线识别系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh}
+.header{background:linear-gradient(135deg,#0f3460,#16213e);padding:28px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #e94560}
+.header h1{color:#e94560;font-size:26px;font-weight:700}
+.header .subtitle{color:#aaa;font-size:13px;margin-top:4px}
+.header nav a{color:#eee;text-decoration:none;margin-left:20px;padding:8px 18px;border-radius:4px;transition:.2s;font-size:14px}
+.header nav a:hover,.header nav a.active{background:#e94560;color:#fff}
+.container{max-width:1200px;margin:0 auto;padding:30px 20px}
+.card{background:#16213e;border-radius:12px;padding:25px;border:1px solid #0f3460;margin-bottom:25px}
+.card h2{color:#e94560;margin-bottom:18px;font-size:20px;border-bottom:1px solid #0f3460;padding-bottom:10px}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin-bottom:30px}
+.intro-card{background:#16213e;border-radius:12px;padding:25px;border:1px solid #0f3460;border-top:3px solid}
+.intro-card.cv{border-top-color:#e94560}
+.intro-card.dl{border-top-color:#4caf50}
+.intro-card h3{font-size:18px;margin-bottom:8px}
+.intro-card.cv h3{color:#e94560}
+.intro-card.dl h3{color:#4caf50}
+.intro-card .desc{color:#aaa;font-size:13px;line-height:1.6;margin-bottom:12px}
+.intro-card .tags{display:flex;flex-wrap:wrap;gap:6px}
+.intro-card .tag{background:#0f3460;color:#ccc;padding:4px 10px;border-radius:4px;font-size:12px}
+.compare-table{width:100%;border-collapse:collapse;margin-top:10px}
+.compare-table td{padding:8px 12px;border-bottom:1px solid #1a2a4e;font-size:13px}
+.compare-table td:first-child{color:#aaa;width:30%}
+.compare-table td:last-child{font-weight:600}
+.stats-row{display:flex;gap:20px;margin-bottom:25px;flex-wrap:wrap}
+.stat-box{background:#16213e;border-radius:12px;padding:20px;text-align:center;flex:1;min-width:140px;border:1px solid #0f3460}
+.stat-box .num{font-size:36px;font-weight:bold;color:#e94560}
+.stat-box .label{color:#aaa;margin-top:5px;font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:25px}
+input[type=file]{display:none}
+.file-label{display:inline-block;background:#e94560;color:#fff;padding:12px 24px;border-radius:6px;cursor:pointer;transition:.2s;font-size:15px}
+.file-label:hover{background:#c73650}
+select,input[type=text]{padding:10px 15px;border-radius:6px;border:1px solid #0f3460;background:#1a1a2e;color:#eee;font-size:14px}
+select{margin:0 10px}
+.btn{display:inline-block;background:#e94560;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;transition:.2s;text-decoration:none}
+.btn:hover{background:#c73650}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-out{background:transparent;border:1px solid #e94560;color:#e94560}.btn-out:hover{background:#e94560;color:#fff}
+.btn-danger{background:#c0392b;border-color:#c0392b}.btn-danger:hover{background:#a93226}
+.form-row{display:flex;align-items:center;gap:10px;margin:15px 0;flex-wrap:wrap}
+.filename{color:#aaa;font-size:13px;margin-left:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.filter-bar input,.filter-bar select{padding:8px 12px;font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #0f3460;font-size:13px}
+th{color:#aaa;font-weight:600}tr:hover{background:rgba(233,69,96,.08)}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:99;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#16213e;border-radius:12px;padding:30px;width:420px;border:1px solid #0f3460}
+.modal-box h3{color:#e94560;margin-bottom:20px}
+.modal-box label{display:block;color:#aaa;font-size:13px;margin:10px 0 4px}
+.modal-box input,.modal-box select{width:100%;margin:0}
+.modal-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.hidden{display:none}
+.pagination{display:flex;gap:5px;justify-content:center;margin-top:15px}
+.pagination button{padding:6px 12px;border:1px solid #0f3460;background:#1a1a2e;color:#eee;border-radius:4px;cursor:pointer;font-size:13px}
+.pagination button:hover{background:#e94560}
+.pagination button.active{background:#e94560;border-color:#e94560}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>车道线识别系统</h1>
+    <div class="subtitle">Lane Detection System &mdash; CV + Deep Learning</div>
+  </div>
+  <nav>
+    <a href="/" class="active">首页</a>
+  </nav>
+</div>
+<div class="container">
+
+<div class="intro-grid">
+  <div class="intro-card cv">
+    <h3>传统计算机视觉方法 (CV)</h3>
+    <div class="desc">基于透视变换将道路图像转为鸟瞰视角，通过滑动窗口搜索车道线像素，多项式曲线拟合后逆变换叠加可视化。</div>
+    <div class="tags">
+      <span class="tag">透视变换</span><span class="tag">Sobel+HLS 阈值</span>
+      <span class="tag">滑动窗口搜索</span><span class="tag">多项式拟合</span>
+      <span class="tag">时序平滑</span>
+    </div>
+  </div>
+  <div class="intro-card dl">
+    <h3>深度学习方法 (UFLD)</h3>
+    <div class="desc">基于 ResNet18 骨干网络 + 行锚点分类机制，将车道线检测转化为行方向的位置分类任务，直接预测车道线在各锚行中的 x 坐标。</div>
+    <div class="tags">
+      <span class="tag">ResNet18 骨干</span><span class="tag">行锚点分类</span>
+      <span class="tag">Softmax 期望定位</span>
+      <span class="tag">四点 EMA 平滑</span>
+      <span class="tag">丢失帧保持</span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>方法对比</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div>
+      <table class="compare-table">
+        <tr><td>算法</td><td style="color:#e94560">传统CV</td></tr>
+        <tr><td>核心思想</td><td>透视变换 + 滑动窗口</td></tr>
+        <tr><td>依赖</td><td>手工阈值、几何先验</td></tr>
+        <tr><td>优势</td><td>可解释、不依赖数据</td></tr>
+        <tr><td>劣势</td><td>光照敏感、弯道不稳定</td></tr>
+      </table>
+    </div>
+    <div>
+      <table class="compare-table">
+        <tr><td>算法</td><td style="color:#4caf50">深度学习 (UFLD)</td></tr>
+        <tr><td>核心思想</td><td>ResNet18 + 行锚点</td></tr>
+        <tr><td>依赖</td><td>CULane 数据集训练</td></tr>
+        <tr><td>优势</td><td>泛化强、抗光照干扰</td></tr>
+        <tr><td>劣势</td><td>需GPU、训练成本高</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box"><div class="num">{{ stats.total }}</div><div class="label">总检测次数</div></div>
+  <div class="stat-box"><div class="num">{{ stats.detected }}</div><div class="label">检测成功</div></div>
+  <div class="stat-box"><div class="num">{{ stats.rate }}%</div><div class="label">成功率</div></div>
+</div>
+
+<div class="grid2">
+<div class="card">
+  <h2>上传检测</h2>
+  <form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return startUpload()">
+    <div class="form-row">
+      <label for="file-input" class="file-label">选择文件</label>
+      <input type="file" id="file-input" name="file" accept=".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mov" required onchange="document.getElementById('fname').textContent=this.files[0]?.name||''">
+      <span id="fname" class="filename"></span>
+    </div>
+    <div class="form-row">
+      <label>检测方法：</label>
+      <select name="method" id="method-select" onchange="toggleWinCb()">
+        <option value="cv">传统CV</option>
+        <option value="dl">深度学习</option>
+      </select>
+      <label id="win-cb-label"><input type="checkbox" name="draw_windows" value="1"> 显示滑动窗口</label>
+    </div>
+    <div class="form-row" style="font-size:12px;color:#888" id="method-hint">CV：透视变换 + 滑动窗口搜索 + 多项式曲线拟合 + 时序平滑</div>
+    <button type="submit" class="btn" id="submit-btn">开始检测</button>
+    <div id="upload-status" style="display:none;margin-top:10px;color:#e94560;font-size:13px">检测中，请稍候...</div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>操作</h2>
+  <div class="form-row">
+    <a href="/export" class="btn btn-out">导出检测记录</a>
+    <a href="/export_log" class="btn btn-out">导出操作日志</a>
+    <form action="/clear" method="post" style="display:inline" onsubmit="return confirm('确认清空所有记录？')">
+      <button type="submit" class="btn btn-out btn-danger">清空全部</button>
+    </form>
+  </div>
+</div>
+</div>
+
+<div class="card">
+  <h2>检测历史</h2>
+  <div class="filter-bar">
+    <input type="text" id="search-kw" placeholder="搜索文件名..." oninput="loadList()">
+    <select id="search-method" onchange="loadList()">
+      <option value="">全部方法</option>
+      <option value="CV">CV</option>
+      <option value="DL">DL</option>
+    </select>
+    <select id="search-status" onchange="loadList()">
+      <option value="">全部状态</option>
+      <option value="1">检测成功</option>
+      <option value="0">检测失败</option>
+    </select>
+  </div>
+  <table>
+    <thead><tr>
+      <th>ID</th><th>文件名</th><th>方法</th><th>车道数</th><th>状态</th><th>时间</th><th>操作</th>
+    </tr></thead>
+    <tbody id="table-body">
+      <tr><td colspan="7" style="text-align:center;color:#555">加载中...</td></tr>
+    </tbody>
+  </table>
+  <div class="pagination" id="pager"></div>
+</div>
+
+</div>
+
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal-box">
+    <h3>编辑记录 #<span id="edit-id"></span></h3>
+    <label>文件名</label>
+    <input type="text" id="edit-filename">
+    <label>方法</label>
+    <select id="edit-method"><option>CV</option><option>DL</option></select>
+    <label>车道数</label>
+    <input type="number" id="edit-lanes" min="0" max="4">
+    <label>状态</label>
+    <select id="edit-status"><option value="1">成功</option><option value="0">失败</option></select>
+    <div class="modal-btns">
+      <button class="btn btn-out" onclick="closeEdit()">取消</button>
+      <button class="btn" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentPage = 1;
+
+document.getElementById('table-body').addEventListener('click', function(e) {
+  var t = e.target.closest('[data-action]');
+  if (!t) return;
+  var id = parseInt(t.getAttribute('data-id'));
+  if (t.getAttribute('data-action') === 'edit') {
+    openEdit(id, t.getAttribute('data-filename'), t.getAttribute('data-method'),
+             parseInt(t.getAttribute('data-lanes')), parseInt(t.getAttribute('data-detected')));
+  } else if (t.getAttribute('data-action') === 'delete') {
+    doDelete(id);
+  }
+});
+
+function loadList(page) {
+  page = page || 1;
+  currentPage = page;
+  var kw = document.getElementById('search-kw').value;
+  var method = document.getElementById('search-method').value;
+  var status = document.getElementById('search-status').value;
+  fetch('/api/detections?keyword=' + encodeURIComponent(kw) + '&method=' + method + '&detected=' + status + '&page=' + page)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var tb = document.getElementById('table-body');
+      if (!data.rows.length) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#555">暂无检测记录</td></tr>';
+        return;
+      }
+      var html = '';
+      data.rows.forEach(function(d) {
+        var time = (d.created_at && d.created_at.split(' ')[1]) || d.created_at || '';
+        var lanes = d.lanes_count != null ? d.lanes_count : '-';
+        var detected = d.detected ? '成功' : '失败';
+        var color = d.detected ? '#4caf50' : '#e94560';
+        html += '<tr>' +
+          '<td>' + d.id + '</td>' +
+          '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + d.filename + '">' + d.filename + '</td>' +
+          '<td>' + d.method + '</td>' +
+          '<td>' + lanes + '</td>' +
+          '<td style="color:' + color + '">' + detected + '</td>' +
+          '<td>' + time + '</td>' +
+          '<td>' +
+            '<a href="/result/' + d.id + '" class="btn btn-sm">查看</a>' +
+            '<button class="btn btn-sm btn-out" data-action="edit" data-id="' + d.id + '" data-filename="' + d.filename + '" data-method="' + d.method + '" data-lanes="' + (d.lanes_count||0) + '" data-detected="' + (d.detected||0) + '">编辑</button>' +
+            '<button class="btn btn-sm btn-out btn-danger" data-action="delete" data-id="' + d.id + '">删除</button>' +
+          '</td></tr>';
+      });
+      tb.innerHTML = html;
+      var phtml = '';
+      var totalPages = Math.ceil(data.total / 20);
+      for (var i = 1; i <= totalPages; i++)
+        phtml += '<button class="' + (i===page?'active':'') + '" onclick="loadList(' + i + ')">' + i + '</button>';
+      document.getElementById('pager').innerHTML = phtml;
+    });
+}
+
+function openEdit(id, filename, method, lanes, detected) {
+  document.getElementById('edit-id').textContent = id;
+  document.getElementById('edit-filename').value = filename;
+  document.getElementById('edit-lanes').value = lanes;
+  document.getElementById('edit-method').value = method;
+  document.getElementById('edit-status').value = detected ? '1' : '0';
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+function closeEdit() {
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+function saveEdit() {
+  var id = document.getElementById('edit-id').textContent;
+  var body = JSON.stringify({
+    filename: document.getElementById('edit-filename').value,
+    lanes_count: parseInt(document.getElementById('edit-lanes').value),
+    detected: document.getElementById('edit-status').value === '1',
+    method: document.getElementById('edit-method').value
+  });
+  fetch('/api/detection/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: body})
+    .then(function(r) { return r.json(); })
+    .then(function() { closeEdit(); loadList(currentPage); });
+}
+function doDelete(id) {
+  if (!confirm('确认删除记录 #' + id + '?')) return;
+  fetch('/api/detection/' + id, {method:'DELETE'}).then(function() { loadList(currentPage); });
+}
+
+function toggleWinCb() {
+  var method = document.getElementById('method-select').value;
+  var label = document.getElementById('win-cb-label');
+  var hint = document.getElementById('method-hint');
+  if (method === 'dl') {
+    label.style.display = 'none';
+    hint.textContent = 'DL：ResNet18 骨干网络 + 行锚点分类预测';
+  } else {
+    label.style.display = '';
+    hint.textContent = 'CV：透视变换 + 滑动窗口搜索 + 多项式曲线拟合 + 时序平滑';
+  }
+}
+
+function startUpload() {
+  var btn = document.getElementById('submit-btn');
+  var status = document.getElementById('upload-status');
+  if (btn.disabled) return false;
+  btn.disabled = true;
+  btn.textContent = '检测中...';
+  status.style.display = 'block';
+  return true;
+}
+
+loadList();
+toggleWinCb();
+</script>
+</body>
+</html>
