@@ -4,8 +4,7 @@
 *.egg-info/
 .pip_cache/
 
-# PyTorch / 模型权重
-*.pth
+# PyTorch / 模型权重（大文件用 Git LFS 追踪）
 *.pt
 *.bin
 *.safetensors
